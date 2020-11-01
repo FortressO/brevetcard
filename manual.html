@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Generate - Brevet Cards</title>
+  <style>
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    font-size: 1em;
+  }
+  .sample {
+   margin-left:1cm;
+   background-color:LightGray;
+   padding-left:0.5cm;
+   width:70%;
+  }
+
+input:hover {
+  background-color: yellow;
+}
+  </style>
+</head>
+
+<body>
+<h1>Reference</h1>
+<table>
+<thead><tr><th>Name</th><th>Type</th><th>Description</th><th></th></tr></thead>
+<tbody>
+<tr>
+ <td>
+  schedule.php
+ </td>
+ <td>
+  Server script
+ </td>
+ <td>
+  Accesses Randonneurs Ontario schedule database and returns the schedule</br>
+  as an array of events.
+ </td>
+ </tr>
+<tr>
+ <td>
+  control_time.php
+ </td>
+ <td>
+  Server script
+ </td>
+ <td>
+  Given an event onject from the schedule, retrieves a route file in tcx format </br>
+  and searches the cues for controls. Returns an array of control objects as the controllist.
+ </td>
+ </tr>
+<tr>
+ <td>
+  post_brevet_card.php
+ </td>
+ <td>
+  Server script
+ </td>
+ <td>
+  Generates a pdf file for a set of brevet cards.</br>
+  Some or all of the parameters shown in the sample can</br>
+  be provided, but if omitted, those fields will be left blank</br>
+  on the returned card.</br>
+  Submit an empty html form to generate a blank card.
+<form action="post_brevet_card.php" method="post" target="_self">
+  <input type="submit" value="Blank card like our old pre-printed cards">
+</form>
+ </td>
+ </tr>
+<tr>
+ <td>
+  Schedule
+ </td>
+ <td>
+  Array of Events
+ </td>
+ <td>
+  The returned results of a call to get schedule.
+ </td>
+ </tr>
+ <td>
+  Event
+ </td>
+ <td>
+  Object
+ </td>
+ <td>
+  A collection of properties for a scheduled Randonneurs Ontario ride.
+ </td>
+</tr>
+<tr><td>control_list</td><td>Array of control objects.</td>
+<td>Between 2 and 18 controls where a rider gets a witness to thier passage.</td>
+</tr>
+<tr><td>control</td>
+<td>Object</td>
+<td>There are 4 fields in a control. A brief name which both rider and witness will recognize.
+ The distance on the route and the allowed opn and close times for the control. </td>
+</tr>
+<tr><td>rider list</td><td>Array of rider</td><td>A brevet card will be printed for each rider in the array</td>
+</tr>
+<tr><td>rider</td><td>Object</td>
+<td>Brevet card uses a single field "name" from the rider object.</td>
+</tr>
+</tbody>
+</table>
+
+<div class="sample">
+<pre>
+&lt;form action="post_brevet_card.php" method="post" target="_self"&gt;
+  &lt;input type="submit" value="Blank card like our old pre-printed cards"&gt;
+&lt;/form&gt;
+</pre>
+</div>
+
+
+<div class="sample">
+<pre>
+{ "status":"ok",
+  "schedule":[
+  {
+    "Sched_Id":"685",
+    "Chapter":"Huron",
+    "Event":"Brevet",
+    "Distance":"200",
+    "Date":"2019-03-30",
+    "Route":"Rondeau Rando",
+    "StartLoc":"Tim Horton's, 380 Maidstone Ave W, Essex, ON.,",
+    "Stime":"07:00:00",
+    "Organizer":"TBD",
+    "Contact":"",
+    "RWGPS":"https:\/\/ridewithgps.com\/routes\/26156693",
+    "Unixtime":1553943600
+   },
+   {
+    "Sched_Id":"686",
+    "Chapter":"Huron",
+    "Event":"Brevet",
+    "Distance":"200",
+    "Date":"2019-04-06",
+    "Route":"Big Bay",
+    "StartLoc":"Tim Horton's, 618 Gustavus St., Port Elgin, ON.,",
+    "Stime":"08:00:00",
+    "Organizer":"TBD",
+    "Contact":"",
+    "RWGPS":"",
+    "Unixtime":1554552000
+   },
+   {
+    "Sched_Id":"709",
+    "Chapter":"Toronto",
+    "Event":"Populaire",
+    "Distance":"110",
+    "Date":"2019-04-07",
+    "Route":"Uxbridge Ice Classic",
+    "StartLoc":"Tim Horton's, 2890 Steeles Ave E, Thornhill",
+    "Stime":"09:00:00",
+    "Organizer":"Register",
+    "Contact":"https:\/\/ridewithgps.com\/events\/69591-uxbridge-ice-classic-110-toronto",
+    "RWGPS":"https:\/\/ridewithgps.com\/routes\/26478187",
+    "Unixtime":1554642000
+   },
+]}
+</pre>
+</div>
+
+<div class="sample">
+<pre>
+var schedule={};
+$( function(){
+  $.get("schedule.php?from=2019-01-01&to=2019-12-31", function(data) {
+    if( data.status !== 'ok' ) {
+         console.log('schedule.php returned error: '+data.message);
+         return;
+      } else {
+         var sTable='&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Date&lt;/th&gt;&lt;th&gt;Route&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;';
+         data.schedule.forEach( function(event,index) {
+          schedule[ event.Sched_Id ] = event;
+          if( event.Event === 'Brevet' ) {
+            sTable += '&lt;tr&gt;&lt;td&gt;'+new Date(event.Unixtime*1000)
+               +'&lt;/td&gt;&lt;td onclick="generate_card('+event.Sched_Id+');return false;"&gt;'+event.Route+'&lt;/td&gt;&lt;/tr&gt;';
+            }
+          });
+          sTable += '&lt;/tbody&gt;&lt;/table&gt;';
+          $("#theSchedule").append( sTable );
+      }
+  },"json");
+ });
+
+function generate_card( Sched_Id ) {
+ $.get( "control_time.php",{event:JSON.stringify(schedule[Sched_Id])}, function(controls_data) {
+    if( controls_data.status !== 'ok' ) {
+         console.log('control_time.php returned error: '+controls_data.message);
+         return;
+      } else {
+var riderlist=[{name:'Erin Marchak'},{name:'A Rider'}];
+         openWindowWithPost("post_brevet_card.php",
+           {distance:schedule[Sched_Id].Distance,
+            evname:schedule[Sched_Id].Route,
+            evstart:controls_data.startdate,
+            maxhours:controls_data.maxhours,
+            maxminutes:controls_data.maxminutes,
+            emergtel:'911',
+            riderlist: JSON.stringify(riderlist),
+            controllist: JSON.stringify(controls_data.control_list)});
+      }
+  },"json").fail(function() { console.log('Fail return from control_time.php');}) ;
+}
+
+function openWindowWithPost(url, data) {
+    var form = document.createElement("form");
+    form.target = "_self";
+    form.method = "POST";
+    form.action = url;
+    form.style.display = "none";
+
+    for (var key in data) {
+        var input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = data[key];
+        form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+</pre>
+</div>
+<div >
+<h3>Sample return object from control_time.php</h3>
+<p>The control_list is an array of control objects. The objects are 4 formatted strings.
+post_brevet_card.php places the strings in the appropriate place on the control card.</p>
+<pre class="sample">
+{
+    "status": "ok",
+    "control_list": [
+        {
+            "distance": "0.0km",
+            "name": "Port Elgin",
+            "open": "Sat 8:00",
+            "close": "Sat 9:00"
+        },
+        {
+            "distance": "52.0km",
+            "name": "Chatsworth",
+            "open": "Sat 9:32",
+            "close": "Sat 11:28"
+        },
+        {
+            "distance": "98.8km",
+            "name": "Owen Sound",
+            "open": "Sat 10:54",
+            "close": "Sat 14:35"
+        },
+        {
+            "distance": "134.5km",
+            "name": "Big Bay",
+            "open": "Sat 11:57",
+            "close": "Sat 16:58"
+        },
+        {
+            "distance": "172.9km",
+            "name": "Sauble Beach",
+            "open": "Sat 13:05",
+            "close": "Sat 19:32"
+        },
+        {
+            "distance": "204.7km",
+            "name": "Port Elgin",
+            "open": "Sat 14:01",
+            "close": "Sat 21:30"
+        }
+    ],
+    "maxhours": "13",
+    "maxminutes": "30",
+    "startdate": "April 6, 2019"
+}
+</pre>
+</div>
+
+</body>
+</html>
+

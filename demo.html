@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Organizer - Brevet Cards</title>
+  <style>
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    font-size: 1em;
+  }
+  </style>
+  <script src="jquery-1.12.4.js"></script>
+  <script>
+var schedule={};
+$( function(){
+  $.get("schedule.php?from=2019-01-01&to=2019-12-31", function(data) {
+    if( data.status !== 'ok' ) { 
+         console.log('PDO_2019schedule.php returned error: '+data.message);
+         return;
+      } else {
+         var sTable='<table><thead><tr><th>Date</th><th>Route</th></tr></thead><tbody>';
+         data.schedule.forEach( function(event,index) {
+          schedule[ event.Sched_Id ] = event;
+          if( event.Event === 'Brevet' ) {
+            sTable += '<tr><td>'+new Date(event.Unixtime*1000)
+               +'</td><td onclick="generate_card('+event.Sched_Id+');return false;">'+event.Route+'</td></tr>';
+            }
+          });
+          sTable += '</tbody></table>';
+          $("#theSchedule").append( sTable );
+      }
+  },"json");
+ });
+
+
+function generate_card( Sched_Id ) {
+ $.get( "control_time.php",{event:JSON.stringify(schedule[Sched_Id])}, function(controls_data) {
+    if( controls_data.status !== 'ok' ) { 
+         console.log('control_time.php returned error: '+controls_data.message);
+         return;
+      } else {
+var riderlist=[{name:'Erin Marchak'},{name:'A Rider'}];
+         openWindowWithPost("post_brevet_card.php",
+           {distance:schedule[Sched_Id].Distance,
+            evname:schedule[Sched_Id].Route,
+            evstart:controls_data.startdate,
+            maxhours:controls_data.maxhours,
+            maxminutes:controls_data.maxminutes,
+            emergtel:'911',
+            riderlist: JSON.stringify(riderlist),
+            controllist: JSON.stringify(controls_data.control_list)});
+      }
+  },"json").fail(function() { console.log('Fail return from control_time.php');}) ;
+}
+
+
+function openWindowWithPost(url, data) {
+    var form = document.createElement("form");
+    form.target = "_self";
+    form.method = "POST";
+    form.action = url;
+    form.style.display = "none";
+
+    for (var key in data) {
+        var input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = data[key];
+        form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+  </script>
+</head>
+<body>
+<h1>Brevet Card Automation</h1>
+<div id="theSchedule">
+</div>
+</body>
+</html>
