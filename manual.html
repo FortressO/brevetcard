@@ -24,7 +24,35 @@ input:hover {
 </head>
 
 <body>
-<h1>Reference</h1>
+<h1>Brevet card automation</h1>
+<p>
+Brevet cards are witness cards that a Randonneur uses to record participation in a Brevet.
+ Ride organizers fill in the name of the event, the riders name and the location of each
+"control" where a rider asks a witness to fill in a time of passage and an initial.
+This set of scripts allows some of the repetitive tasks of the organizer to be automated.
+Gps files that specify the Route inherently contain the precise distance of each control
+as well as cues that specify the name of the control.
+If the route designer follows simple naming conventions, the script 
+control_time.php can retriev the control distance from gps files and format the fields of a brevet
+card. 
+</p><p>
+A second script, post_brevet_card.php is designed to recieve the pre-formated strings as well as an array of control
+information and an array of rider names. It makes some adjustementof the font sizes and may truncate 
+long strings in order to avoid over printing other parts of the form. It then provides a pdf file 
+as a download which contains a brevet card for each name found in the riderlist array.
+</p>
+<p>This <a href="https://www.randonneursontario.ca/brevetcard/demo.html">demo page</a> retrieves the entire 
+schedule for 2019 and displays it as a table. The route names are clickable and will generate
+a brevetcard for that event. The demo page accepts url parameters for dates 'from', 'to' and 'chapter'.
+The Toronto chapter schedule for 2021 can be retrieved using a combination of url parameters:
+<a href="https://www.randonneursontario.ca/brevetcard/demo.html?from=2021-01-01&to=2021-12-31&chapter=Toronto">
+https://www.randonneursontario.ca/brevetcard/demo.html?from=2021-01-01&to=2021-12-31&chapter=Toronto</a>
+</p>
+<p>
+The following reference information will aid programmers in understanding how the process works
+and aid in enhanciing the Randonneursontario web site.
+</p>
+<h1>Reference for programmers</h1>
 <table>
 <thead><tr><th>Name</th><th>Type</th><th>Description</th><th></th></tr></thead>
 <tbody>

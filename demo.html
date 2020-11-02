@@ -15,9 +15,13 @@
   <script>
 var schedule={};
 $( function(){
-  $.get("schedule.php?from=2019-01-01&to=2019-12-31", function(data) {
+var from='2019-01-01',to='2019-12-31',chapter="";
+if( $.urlParam('from') ) from=$.urlParam('from');
+if( $.urlParam('to') ) to=$.urlParam('to');
+if( $.urlParam('chapter') ) chapter="&chapter="+$.urlParam('chapter');
+  $.get("schedule.php?from="+from+"&to="+to+chapter, function(data) {
     if( data.status !== 'ok' ) { 
-         console.log('PDO_2019schedule.php returned error: '+data.message);
+         console.log('schedule.php returned error: '+data.message);
          return;
       } else {
          var sTable='<table><thead><tr><th>Date</th><th>Route</th></tr></thead><tbody>';
@@ -74,6 +78,10 @@ function openWindowWithPost(url, data) {
     document.body.appendChild(form);
     form.submit();
     document.body.removeChild(form);
+}
+$.urlParam = function(name){
+	var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+	if( results ) return results[1] || 0; else return false;
 }
 
   </script>

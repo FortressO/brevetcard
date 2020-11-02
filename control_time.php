@@ -132,7 +132,7 @@ foreach( $xml->trk as $trk ){
           $firstCue=false;
           if( $trkDist > 1.0 ) {
 // if there is no cue in first 1 km just put in a control with blank name
-           $result_json[]=new Control("0.0km"," ",0.0,1.0 );
+           $result_json[]=new Control("0.0km"," ",control_time_format(0.0,$starttime),control_time_format(1.0,$starttime) );
           }
         }
     $cueDist=$trkDist;
@@ -182,7 +182,7 @@ foreach( $xml->Courses->Course as $crs ){
           $firstCue=false;
           if( $trkDist > 1.0 ) {
 // if there is no cue in first 1 km just put in a control with blank name
-           $result_json[]=new Control("0.0km"," ",0.0,1.0 );
+           $result_json[]=new Control("0.0km"," ",control_time_format(0.0,$starttime),control_time_format(1.0,$starttime) );
           }
         }
         $openTime=control_time_format( lookUpOpen($trkDist,$distance),$starttime);
