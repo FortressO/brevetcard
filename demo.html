@@ -10,6 +10,7 @@
     border-collapse: collapse;
     font-size: 1em;
   }
+  .rsel { cursor: pointer; color:blue; text-decoration: underline; }
   </style>
   <script src="jquery-1.12.4.js"></script>
   <script>
@@ -29,7 +30,7 @@ if( $.urlParam('chapter') ) chapter="&chapter="+$.urlParam('chapter');
           schedule[ event.Sched_Id ] = event;
           if( event.Event === 'Brevet' ) {
             sTable += '<tr><td>'+new Date(event.Unixtime*1000)
-               +'</td><td onclick="generate_card('+event.Sched_Id+');return false;">'+event.Route+'</td></tr>';
+               +'</td><td class="rsel" onclick="generate_card('+event.Sched_Id+');return false;">'+event.Route+'</td></tr>';
             }
           });
           sTable += '</tbody></table>';
