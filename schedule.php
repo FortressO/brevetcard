@@ -1,28 +1,33 @@
 <?php
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+date_default_timezone_set('America/Toronto');
 include './mysql.php';
 //include './dsn.php';
+
 if( $_SERVER['REQUEST_METHOD'] ===  'GET' ) {
- header('Content-Type: application/json');
- date_default_timezone_set('America/Toronto');
- if( !empty($_GET['id']) ) {
-   $query="SELECT * FROM Schedule WHERE Sched_Id=".$_GET['id'];
-   } else {
-     if( !empty($_GET["chapter"] ) ){ $chapter=" Chapter=\"".$_GET["chapter"]."\" && ";}
-        else {$chapter="";}
-     if( !empty($_GET["date"] ) ){ $date=$_GET["date"]; $limit=" Limit 1";}
-        else {$date="2019-01-01"; $limit="";}
-     if( !empty($_GET["from"] ) ){ $date=$_GET["from"]; $limit=" ";}
-        else {$date="2019-01-01"; $limit="";}
-     if( !empty($_GET["to"] ) ){ $to=$_GET["to"]; $limit=" ";}
-        else {$to="2019-12-31"; $limit="";}
-    $query="SELECT * FROM Schedule WHERE (".$chapter."(DATE between '".$date." 00:00:00'  AND '".$to."  00:00:00'  ))  ORDER BY Date ASC".$limit;
-    }
+  $id = empty($_GET["id"]) ? "%" : $_GET["id"];
+  $chapter = empty($_GET["chapter"]) ? "%" : $_GET["chapter"];
+  $from = empty($_GET["date"]) ? "1970-01-01" : $_GET["date"];
+  $from = empty($_GET["from"]) ? $from : $_GET["from"];
+  $to = empty($_GET["to"]) ? "2999-12-31" : $_GET["to"];
+  $limit = empty($_GET["date"]) ? 999 : 1;
+  $query = 'SELECT * FROM Schedule WHERE
+    Sched_ID LIKE :id &&
+    Chapter LIKE :chapter && 
+    (Date between :from AND :to)
+    ORDER By Date ASC Limit :limit';
  try {
     $conn = new PDO($dsn, $username, $password);
 // force an exception if the following does not work out
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $rows = array();
     $stmt = $conn->prepare($query, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL)); 
+    $stmt->bindValue(':id', $id);
+    $stmt->bindValue(':chapter', $chapter);
+    $stmt->bindValue(':from', $from . ' 00:00:00');
+    $stmt->bindValue(':to', $to . ' 00:00:00');
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->execute();
     while( $r = $stmt->fetch(PDO::FETCH_ASSOC) ) { 
     $midnight =  strtotime($r['Date']) ;
